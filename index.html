@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Natrix Natrix - The Outlines Of Familiar Songs</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎵</text></svg>" />
+  <link rel="stylesheet" href="styles.css" />
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap');
+
+    :root {
+      --scroll-shadow-height: 10px;
+      --purple-bg: #290c31;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+    
+    body {
+      font-family: "Inter", sans-serif;
+      background: var(--purple-bg);
+      background-image: url("https://www.transparenttextures.com/patterns/dark-mosaic.png"),
+        radial-gradient(circle at 50% -30%, rgb(144,17,105) 0%, rgb(51,0,131) 100%);
+      background-attachment: fixed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.5rem;
+    }
+
+    #app {
+      width: 100%;
+      max-width: 420px;
+      height: 100%;
+      max-height: 850px;
+      background-color: #020617;
+      border-radius: 0.75rem;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .album-art-bg {
+      background-image: url("https://shultz.dev/assets/codepen/images/astro/Hurca%20-%20Lost%20in%20the%20Metaverse.jpeg"),
+        linear-gradient(to top, rgba(0,0,0,0.85), transparent);
+      background-blend-mode: overlay;
+      background-position: center;
+      background-size: cover;
+      min-height: 160px;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .album-art-bg::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60%;
+      background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+      pointer-events: none;
+    }
+
+    .album-info {
+      position: relative;
+      z-index: 2;
+    }
+
+    .album-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .album-artist {
+      font-size: 0.95rem;
+      color: #60a5fa;
+      font-weight: 500;
+    }
+
+    .no-ai-badge {
+      display: inline-block;
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+      font-size: 0.55rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      margin-top: 0.25rem;
+    }
+
+    @media (max-width: 480px) {
+      .album-art-bg {
+        min-height: 130px;
+      }
+      .album-title {
+        font-size: 1rem;
+      }
+      .album-artist {
+        font-size: 0.8rem;
+      }
+      .no-ai-badge {
+        font-size: 0.5rem;
+        padding: 0.1rem 0.4rem;
+      }
+    }
+
+    .track-list-shadow {
+      flex: 1;
+      min-height: 0;
+    }
+
+    .track-list-shadow::before,
+    .track-list-shadow::after {
+      content: "";
+      display: block;
+      position: sticky;
+      left: 0;
+      right: 0;
+      height: var(--scroll-shadow-height);
+      z-index: 10;
+      pointer-events: none;
+      transition: opacity 0.2s ease-in-out;
+    }
+    .track-list-shadow::before {
+      top: 0;
+      margin-top: calc(var(--scroll-shadow-height) * -1);
+      background: linear-gradient(to bottom, rgba(0,0,0,0.25), transparent);
+      opacity: 0;
+    }
+    .track-list-shadow::after {
+      bottom: 0;
+      margin-bottom: calc(var(--scroll-shadow-height) * -1);
+      background: linear-gradient(to top, rgba(0,0,0,0.25), transparent);
+      opacity: 0;
+    }
+    .track-list-shadow.shadow-visible-top::before { opacity: 1; }
+    .track-list-shadow.shadow-visible-bottom::after { opacity: 1; }
+
+    .track-item {
+      padding: 0.7rem 1rem;
+      min-height: 56px;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+    }
+
+    .track-item:last-child {
+      border-bottom: none;
+    }
+
+    @media (max-width: 480px) {
+      .track-item {
+        padding: 0.5rem 0.8rem;
+        min-height: 48px;
+      }
+      .track-title {
+        font-size: 0.85rem;
+      }
+      .track-artist {
+        font-size: 0.7rem;
+      }
+      .track-length {
+        font-size: 0.7rem;
+      }
+    }
+
+    .track-list-shadow::-webkit-scrollbar {
+      width: 3px;
+    }
+    .track-list-shadow::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .track-list-shadow::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 2px;
+    }
+
+    /* Play Button */
+    .play-button {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 25px rgba(239, 68, 68, 0.35);
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .play-button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 10px 30px rgba(239, 68, 68, 0.5);
+    }
+
+    .play-button:active {
+      transform: scale(0.95);
+    }
+
+    .play-button i {
+      color: white;
+      font-size: 2rem;
+      margin-left: 4px;
+    }
+
+    .play-button.paused i {
+      margin-left: 6px;
+    }
+
+    @media (max-width: 480px) {
+      .play-button {
+        width: 56px;
+        height: 56px;
+      }
+      .play-button i {
+        font-size: 1.6rem;
+      }
+    }
+
+    /* Credits Scroll */
+    .credits-scroll {
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    .credits-scroll::-webkit-scrollbar {
+      width: 3px;
+    }
+    .credits-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .credits-scroll::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 2px;
+    }
+
+    /* Utilities */
+    .relative { position: relative; }
+    .absolute { position: absolute; }
+    .bottom-0 { bottom: 0; }
+    .left-0 { left: 0; }
+    .right-0 { right: 0; }
+    .top-3 { top: 0.75rem; }
+    .right-3 { right: 0.75rem; }
+    .p-4 { padding: 1rem; }
+    .p-3 { padding: 0.75rem; }
+    .px-4 { padding-left: 1rem; padding-right: 1rem; }
+    .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+    .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+    .pb-\[40\%\] { padding-bottom: 40%; }
+    .text-white { color: #fff; }
+    .text-sm { font-size: 0.875rem; }
+    .text-xs { font-size: 0.75rem; }
+    .text-[0.6rem] { font-size: 0.6rem; }
+    .font-semibold { font-weight: 600; }
+    .font-medium { font-weight: 500; }
+    .text-blue-200 { color: #bfdbfe; }
+    .text-gray-400 { color: #9ca3af; }
+    .text-zinc-200 { color: #e4e4e7; }
+    .text-zinc-400 { color: #a1a1aa; }
+    .text-zinc-500 { color: #71717a; }
+    .text-2xl { font-size: 1.5rem; }
+    .text-lg { font-size: 1.125rem; }
+    .flex { display: flex; }
+    .justify-between { justify-content: space-between; }
+    .items-center { align-items: center; }
+    .flex-col { flex-direction: column; }
+    .w-full { width: 100%; }
+    .overflow-auto { overflow: auto; }
+    .overflow-y-auto { overflow-y: auto; }
+    .bg-slate-950 { background-color: #020617; }
+    .bg-slate-900 { background-color: #0f172a; }
+    .bg-slate-900\/95 { background-color: rgba(15, 23, 42, 0.95); }
+    .bg-gray-700 { background-color: #374151; }
+    .bg-red-500 { background-color: #ef4444; }
+    .bg-red-500\/20 { background-color: rgba(239, 68, 68, 0.2); }
+    .rounded-xl { border-radius: 0.75rem; }
+    .rounded-full { border-radius: 9999px; }
+    .cursor-pointer { cursor: pointer; }
+    .hover\:bg-slate-800:hover { background-color: #1e293b; }
+    .hover\:bg-slate-700:hover { background-color: #334155; }
+    .h-1 { height: 0.25rem; }
+    .gap-1 { gap: 0.25rem; }
+    .gap-2 { gap: 0.5rem; }
+    .gap-4 { gap: 1rem; }
+    .gap-6 { gap: 1.5rem; }
+    .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .max-w-32 { max-width: 8rem; }
+    .ml-2 { margin-left: 0.5rem; }
+    .flex-1 { flex: 1; }
+    .min-w-0 { min-width: 0; }
+    .flex-shrink-0 { flex-shrink: 0; }
+    .transition-colors { transition: color 0.2s; }
+    .bg-slate-800 { background-color: #1e293b; }
+    .bg-slate-800\/60 { background-color: rgba(30, 41, 59, 0.6); }
+    .text-blue-400 { color: #60a5fa; }
+    .text-red-400 { color: #f87171; }
+    .text-red-400\/60 { color: rgba(248, 113, 113, 0.6); }
+    .text-red-500 { color: #ef4444; }
+    .hover\:text-white:hover { color: #ffffff; }
+    .hover\:text-blue-300:hover { color: #93c5fd; }
+    .select-none { user-select: none; }
+    .mt-1 { margin-top: 0.25rem; }
+    .mt-2 { margin-top: 0.5rem; }
+    .mt-3 { margin-top: 0.75rem; }
+    .mb-1 { margin-bottom: 0.25rem; }
+    .text-center { text-align: center; }
+    .opacity-70 { opacity: 0.7; }
+    .opacity-50 { opacity: 0.5; }
+    .z-10 { z-index: 10; }
+    .pointer-events-none { pointer-events: none; }
+    .border-t { border-top-width: 1px; }
+    .border-b { border-bottom-width: 1px; }
+    .border-slate-700 { border-color: #334155; }
+    .border-slate-700\/50 { border-color: rgba(51, 65, 85, 0.5); }
+    .border-red-500\/30 { border-color: rgba(239, 68, 68, 0.3); }
+    
+    @media (max-width: 480px) {
+      .text-2xl { font-size: 1.25rem; }
+      .p-4 { padding: 0.75rem; }
+      .px-4 { padding-left: 0.75rem; padding-right: 0.75rem; }
+      .py-3 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+      .max-w-32 { max-width: 6rem; }
+      .gap-6 { gap: 1rem; }
+      .credits-scroll { max-height: 200px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    window.addEventListener('error', function(e) {
+      if (e.message && e.message.includes('onMessage listener')) {
+        e.preventDefault();
+        e.stopPropagation();
+        return true;
+      }
+    }, true);
+
+    (function() {
+      'use strict';
+      
+      const { useState, useRef, useEffect, Fragment } = React;
+
+      function App() {
+        const [atTop, setAtTop] = useState(true);
+        const [atBottom, setAtBottom] = useState(false);
+        const [currentTrack, setCurrentTrack] = useState(0);
+        const [isPlaying, setIsPlaying] = useState(false);
+        const [progress, setProgress] = useState(0);
+        const [duration, setDuration] = useState(0);
+        const [currentTime, setCurrentTime] = useState(0);
+        const [isLoaded, setIsLoaded] = useState(false);
+        const [showCredits, setShowCredits] = useState(false);
+        
+        const trackListRef = useRef(null);
+        const audioRef = useRef(null);
+
+        const tracks = [
+          { title: "Hide Your Sympathies", ru: "Скрывай Свои Симпатии", file: "music/01 Hide your sympathies.mp3", length: "4:37" },
+          { title: "Basta", ru: "Баста", file: "music/02 Basta.mp3", length: "3:52" },
+          { title: "Ironic", ru: "Иронично", file: "music/03 Ironic.mp3", length: "5:36" },
+          { title: "Americano", ru: "Американо", file: "music/04-Americano.mp3", length: "8:44" },
+          { title: "Challenger", ru: "Челленджер", file: "music/05-Challenger-_Baby_s-Gang-Cover_.mp3", length: "4:11" },
+          { title: "Learning", ru: "Обучение", file: "music/06-Learning.mp3", length: "3:24" },
+          { title: "Ordeal", ru: "Тяжелое испытание", file: "music/07-Ordeal.mp3", length: "5:47" },
+          { title: "Impression", ru: "Впечатление", file: "music/08-Impression-_PsychoPop-cover_.mp3", length: "5:01" },
+          { title: "Bridges and Balloons", ru: "Мосты и Воздушные Шары", file: "music/09-Bridges-and-Balloons-_Joanna-Newsom-cover_.mp3", length: "4:38" },
+        ];
+
+        // Scroll handler
+        useEffect(() => {
+          const el = trackListRef.current;
+          if (!el) return;
+
+          const handleScroll = () => {
+            const isAtTop = el.scrollTop === 0;
+            const isAtBottom = Math.abs(el.scrollHeight - el.scrollTop - el.clientHeight) < 1;
+            setAtTop(isAtTop);
+            setAtBottom(isAtBottom);
+          };
+
+          handleScroll();
+          el.addEventListener("scroll", handleScroll);
+          return () => el.removeEventListener("scroll", handleScroll);
+        }, []);
+
+        // Audio events
+        useEffect(() => {
+          const audio = audioRef.current;
+          if (!audio) return;
+
+          const handleLoadedMetadata = () => {
+            setDuration(audio.duration);
+            setIsLoaded(true);
+          };
+
+          const handleTimeUpdate = () => {
+            setCurrentTime(audio.currentTime);
+            setProgress((audio.currentTime / audio.duration) * 100);
+          };
+
+          const handleEnded = () => {
+            setIsPlaying(false);
+            setProgress(0);
+            setCurrentTime(0);
+          };
+
+          const handleError = (e) => {
+            console.warn('Audio loading error:', e);
+            setIsLoaded(false);
+          };
+
+          audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+          audio.addEventListener('timeupdate', handleTimeUpdate);
+          audio.addEventListener('ended', handleEnded);
+          audio.addEventListener('error', handleError);
+
+          return () => {
+            audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+            audio.removeEventListener('timeupdate', handleTimeUpdate);
+            audio.removeEventListener('ended', handleEnded);
+            audio.removeEventListener('error', handleError);
+          };
+        }, []);
+
+        // Load track
+        useEffect(() => {
+          const audio = audioRef.current;
+          if (!audio) return;
+          
+          setIsLoaded(false);
+          audio.load();
+          
+          const timer = setTimeout(() => {
+            if (isPlaying && audio) {
+              audio.play().catch(err => console.log('Playback:', err));
+            }
+          }, 100);
+
+          return () => clearTimeout(timer);
+        }, [currentTrack]);
+
+        // Play/Pause
+        useEffect(() => {
+          const audio = audioRef.current;
+          if (!audio || !isLoaded) return;
+
+          if (isPlaying) {
+            audio.play().catch(err => console.log('Playback:', err));
+          } else {
+            audio.pause();
+          }
+        }, [isPlaying, isLoaded]);
+
+        const formatTime = (seconds) => {
+          if (!seconds || isNaN(seconds) || !isFinite(seconds)) return "0:00";
+          const mins = Math.floor(seconds / 60);
+          const secs = Math.floor(seconds % 60);
+          return `${mins}:${secs.toString().padStart(2, '0')}`;
+        };
+
+        const togglePlay = () => {
+          const audio = audioRef.current;
+          if (!audio) return;
+
+          if (isPlaying) {
+            audio.pause();
+            setIsPlaying(false);
+          } else {
+            audio.play()
+              .then(() => setIsPlaying(true))
+              .catch(err => console.log('Playback error:', err));
+          }
+        };
+
+        const selectTrack = (index) => {
+          if (currentTrack === index && isPlaying) {
+            const audio = audioRef.current;
+            if (audio) {
+              audio.pause();
+              setIsPlaying(false);
+            }
+            return;
+          }
+          
+          setCurrentTrack(index);
+          setIsPlaying(true);
+          setProgress(0);
+          setCurrentTime(0);
+          
+          setTimeout(() => {
+            const trackItems = trackListRef.current?.querySelectorAll('li');
+            if (trackItems && trackItems[index]) {
+              trackItems[index].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+          }, 50);
+        };
+
+        const nextTrack = () => {
+          const next = (currentTrack + 1) % tracks.length;
+          setCurrentTrack(next);
+          setIsPlaying(true);
+          setProgress(0);
+          setCurrentTime(0);
+        };
+
+        const prevTrack = () => {
+          const prev = (currentTrack - 1 + tracks.length) % tracks.length;
+          setCurrentTrack(prev);
+          setIsPlaying(true);
+          setProgress(0);
+          setCurrentTime(0);
+        };
+
+        const handleProgressClick = (e) => {
+          const audio = audioRef.current;
+          if (!audio || !duration || !isFinite(duration)) return;
+          
+          const rect = e.currentTarget.getBoundingClientRect();
+          const x = Math.min(Math.max((e.clientX - rect.left) / rect.width, 0), 1);
+          const newTime = x * duration;
+          audio.currentTime = newTime;
+          setCurrentTime(newTime);
+          setProgress(x * 100);
+        };
+
+        return (
+          React.createElement(Fragment, null,
+            React.createElement('audio', {
+              ref: audioRef,
+              src: tracks[currentTrack].file,
+              preload: 'metadata'
+            }),
+
+            // Album Art with Info
+            React.createElement('div', { className: 'album-art-bg relative p-4 pb-[40%]' },
+              React.createElement('div', { className: 'absolute bottom-0 left-0 right-0 p-4 album-info' },
+                React.createElement('p', { className: 'text-white album-title truncate' },
+                  'The Outlines Of Familiar Songs'
+                ),
+                React.createElement('p', { className: 'album-artist flex items-center gap-2' },
+                  React.createElement('span', null, 'Natrix Natrix'),
+                  React.createElement('span', { className: 'no-ai-badge' }, '🤘 NO AI')
+                )
+              ),
+              React.createElement('i', { 
+                className: 'fas fa-info-circle text-white/40 absolute top-3 right-3 text-lg cursor-pointer hover:text-white transition-colors z-10',
+                onClick: () => setShowCredits(!showCredits)
+              })
+            ),
+
+            // Credits (toggleable)
+            showCredits && React.createElement('div', {
+              className: 'bg-slate-900/95 px-4 py-3 border-b border-slate-700 credits-scroll'
+            },
+              React.createElement('div', { className: 'flex flex-col gap-1 text-xs' },
+                // Musicians
+                React.createElement('p', { className: 'text-zinc-300 font-semibold text-sm mb-1' }, '🎵 Musicians:'),
+                React.createElement('p', { className: 'text-zinc-400' }, '🎤 Lira – vocals'),
+                React.createElement('p', { className: 'text-zinc-400' }, '🥁 Raf – drums & percussion'),
+                React.createElement('p', { className: 'text-zinc-400' }, '🎷 Sergey Minaev – saxophones'),
+                React.createElement('p', { className: 'text-zinc-400' }, '🎸 Dmitry Solomatin – bass'),
+                React.createElement('p', { className: 'text-zinc-400' }, '🎺 Roman Maltsev – trumpet'),
+                React.createElement('p', { className: 'text-zinc-400' }, '🎹 Nikita Sladkov – keyboards'),
+                React.createElement('p', { className: 'text-zinc-400' }, '🎛️ Rouste – all other'),
+                
+                React.createElement('p', { className: 'text-red-400 text-xs mt-1 font-semibold' }, '🚫 AND NO AI AT ALL!'),
+                
+                // Sound engineering
+                React.createElement('p', { className: 'text-zinc-500 text-[0.6rem] mt-2' }, 
+                  '🎧 Sound engineering – Yury Sladkov, Leonid Labashov, Igor Sidenko, Alexander Averin'
+                ),
+                React.createElement('p', { className: 'text-zinc-500 text-[0.6rem]' }, 
+                  '🎨 Graphic design by Sergey Nasekin'
+                ),
+                
+                // Special Thanks
+                React.createElement('p', { className: 'text-zinc-500 text-[0.6rem] mt-2 font-medium' }, 
+                  '🙏 Special Thanks:'
+                ),
+                React.createElement('p', { className: 'text-zinc-500 text-[0.55rem] leading-relaxed' }, 
+                  'Sergey Frolov, Victoria "Victorienna" Babushkina, Jane A, Marat Abdullin, Dmitry Kaplev, Anton Obrazeena, Anton Aksenin, Dmitry "uncle rabbit" Medvedev, Sergey Druzhkov, Alexey Meshcheryakov, Anton Pavlov, Max Sitnikov, Kirill Gorovatsky, Liliya Massarova, Andrey Timofeev, Robert Garaev, Sergey "Hatewax" Omorokov, Chip (RIP), Mart (RIP) and everyone who made this album possible.'
+                ),
+                
+                // Quote
+                React.createElement('p', { className: 'text-zinc-500 text-[0.55rem] mt-2 italic border-t border-slate-700/50 pt-2' }, 
+                  '"Yeah, I\'m good with my 70-cent dollar store headphones. Sound quality who? My puny little brain simply recognizes the outlines of familiar songs and releases its puny little dopamine."'
+                )
+              )
+            ),
+
+            // MEDIA CONTROLS
+            React.createElement('div', { className: 'flex items-center justify-between px-4 py-3 gap-4' },
+              React.createElement('i', {
+                className: 'fas fa-step-backward text-gray-400 cursor-pointer hover:text-white transition-colors select-none text-2xl',
+                onClick: prevTrack
+              }),
+              
+              React.createElement('div', {
+                className: `play-button ${!isPlaying ? 'paused' : ''}`,
+                onClick: togglePlay
+              },
+                React.createElement('i', {
+                  className: `fas ${isPlaying ? 'fa-pause' : 'fa-play'}`
+                })
+              ),
+              
+              React.createElement('i', {
+                className: 'fas fa-step-forward text-gray-400 cursor-pointer hover:text-white transition-colors select-none text-2xl',
+                onClick: nextTrack
+              })
+            ),
+
+            // PROGRESS
+            React.createElement('div', { className: 'px-4 py-1' },
+              React.createElement('div', { className: 'flex justify-between text-xs text-gray-400' },
+                React.createElement('span', null, formatTime(currentTime)),
+                React.createElement('span', null, tracks[currentTrack].length)
+              ),
+              React.createElement('div', {
+                className: 'w-full bg-gray-700 rounded-full h-1 cursor-pointer select-none mt-1',
+                onClick: handleProgressClick
+              },
+                React.createElement('div', {
+                  className: 'bg-red-500 h-1 rounded-full transition-all duration-100',
+                  style: { width: `${Math.min(progress, 100)}%` }
+                })
+              )
+            ),
+
+            // TRACK LIST
+            React.createElement('div', {
+              className: `track-list-shadow divide-y divide-slate-700/50 overflow-auto bg-slate-900 mt-2`,
+              ref: trackListRef
+            },
+              tracks.map((track, idx) =>
+                React.createElement('li', {
+                  key: idx,
+                  className: `track-item flex items-center justify-between text-base cursor-pointer hover:bg-slate-800 transition-colors ${
+                    idx === currentTrack ? 'bg-slate-800/60' : ''
+                  }`,
+                  onClick: () => selectTrack(idx)
+                },
+                  React.createElement('div', { className: 'flex flex-col flex-1 min-w-0' },
+                    React.createElement('div', { className: 'flex items-center gap-2' },
+                      idx === currentTrack && isPlaying && 
+                        React.createElement('i', { className: 'fas fa-volume-up text-blue-400 text-[0.6rem] flex-shrink-0' }),
+                      React.createElement('span', {
+                        className: `track-title truncate ${idx === currentTrack ? 'text-blue-400' : 'text-zinc-200'}`
+                      }, track.title)
+                    ),
+                    React.createElement('span', { className: 'track-artist text-zinc-500 truncate' }, track.ru)
+                  ),
+                  React.createElement('span', { className: 'track-length text-zinc-500 ml-2 flex-shrink-0' }, track.length)
+                )
+              )
+            ),
+
+            // Footer
+            React.createElement('div', { 
+              className: 'px-4 py-2 border-t border-slate-700/50 flex justify-between items-center text-[0.55rem] text-zinc-500 flex-shrink-0'
+            },
+              React.createElement('span', { className: 'font-medium text-zinc-400' }, 'Natrix Natrix'),
+              React.createElement('span', { className: 'opacity-50' }, '•'),
+              React.createElement('span', { className: 'truncate max-w-32' }, 'The Outlines Of Familiar Songs'),
+              React.createElement('span', { className: 'opacity-50' }, '•'),
+              React.createElement('span', { className: 'text-red-400/60 font-semibold' }, '🤘 NO AI')
+            )
+          )
+        );
+      }
+
+      try {
+        ReactDOM.render(React.createElement(App), document.getElementById("app"));
+      } catch (error) {
+        console.error('Render error:', error);
+        document.getElementById("app").innerHTML = `
+          <div class="p-4 text-center text-white">
+            <p class="text-lg">Ошибка загрузки плеера</p>
+            <p class="text-sm text-gray-400">Пожалуйста, обновите страницу</p>
+          </div>
+        `;
+      }
+    })();
+  </script>
+</body>
+</html>
